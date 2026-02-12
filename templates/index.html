@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ทำนายราคาค่าเช่าหอพักข้างมหาวิทยาลัย ด้วย Multiple Regression Model" />
+    <title>🏠 RentPredict — ทำนายราคาค่าเช่าหอพัก</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body>
+    <div class="bg-effects">
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+    </div>
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-icon">🏠</div>
+            <h1>RentPredict</h1>
+            <p>ทำนายราคาค่าเช่าหอพักข้างมหาวิทยาลัย — Multiple Regression Model</p>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+                <span class="tab-icon">🏠</span><span class="tab-text">Home</span>
+            </button>
+            <button class="tab-btn" data-tab="data" onclick="switchTab('data')">
+                <span class="tab-icon">📝</span><span class="tab-text">กรอกข้อมูล</span>
+            </button>
+            <button class="tab-btn" data-tab="train" onclick="switchTab('train')">
+                <span class="tab-icon">🧠</span><span class="tab-text">Train Model</span>
+            </button>
+            <button class="tab-btn" data-tab="predict" onclick="switchTab('predict')">
+                <span class="tab-icon">🔮</span><span class="tab-text">ทำนาย</span>
+            </button>
+        </nav>
+
+        <!-- TAB 0: HOME -->
+        <div class="tab-content active" id="tab-home">
+            <div class="home-hero">
+                <div class="hero-icon">🏠</div>
+                <h2>ยินดีต้อนรับสู่ RentPredict</h2>
+                <p class="hero-desc">ระบบทำนายราคาค่าเช่าหอพักข้างมหาวิทยาลัย<br>ด้วย Multiple Linear Regression Model
+                </p>
+                <button class="btn btn-primary btn-hero" onclick="switchTab('data')">🚀 เริ่มต้นใช้งาน</button>
+            </div>
+
+            <div class="home-features">
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>กรอกข้อมูล</h3>
+                    <p>เพิ่มข้อมูลหอพักที่สำรวจมา เช่น ระยะทาง ขนาดห้อง สภาพห้อง และราคาค่าเช่า</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Train Model</h3>
+                    <p>สร้างโมเดล Multiple Regression แบ่ง Train/Test 80:20 พร้อมประเมินผล R², MAE, MSE</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔮</div>
+                    <h3>ทำนายราคา</h3>
+                    <p>กรอกข้อมูลหอพักที่สนใจ แล้วให้โมเดลทำนายราคาค่าเช่าที่เหมาะสม</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📊</span> Features ที่ใช้ในโมเดล</div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>คำอธิบาย</th>
+                                <th>ประเภท</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="name-cell">Distance</td>
+                                <td>ระยะทางจากมหาวิทยาลัย</td>
+                                <td>กม.</td>
+                            </tr>
+                            <tr>
+                                <td class="name-cell">Room Size</td>
+                                <td>ขนาดห้อง</td>
+                                <td>ตร.ม.</td>
+                            </tr>
+                            <tr>
+                                <td class="name-cell">Convenience</td>
+                                <td>การเดินทางสะดวก</td>
+                                <td>0 = ยาก, 1 = ง่าย/มีวิน</td>
+                            </tr>
+                            <tr>
+                                <td class="name-cell">Fitness</td>
+                                <td>มีฟิตเนสหรือไม่</td>
+                                <td>0 = ไม่มี, 1 = มี</td>
+                            </tr>
+                            <tr>
+                                <td class="name-cell">Room Condition</td>
+                                <td>สภาพห้อง</td>
+                                <td>คะแนน 1-5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: DATA -->
+        <div class="tab-content" id="tab-data">
+            <div class="card">
+                <div class="card-title"><span class="icon">➕</span> เพิ่มข้อมูลหอพัก</div>
+                <form onsubmit="addData(event)">
+                    <div class="form-grid">
+                        <div class="form-group form-full">
+                            <label>ชื่อหอพัก</label>
+                            <input type="text" name="name" placeholder="เช่น หอพักสุขใจ" required />
+                        </div>
+                        <div class="form-group">
+                            <label>ระยะทาง (กม.)</label>
+                            <input type="number" name="distance" step="0.1" min="0" placeholder="0.5" required />
+                        </div>
+                        <div class="form-group">
+                            <label>ขนาดห้อง (ตร.ม.)</label>
+                            <input type="number" name="room_size" step="0.5" min="1" placeholder="24" required />
+                        </div>
+                        <div class="form-group">
+                            <label>การเดินทาง</label>
+                            <select name="convenience" required>
+                                <option value="1">🟢 ง่าย / มีวิน</option>
+                                <option value="0">🔴 ยาก</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>ฟิตเนส</label>
+                            <select name="fitness" required>
+                                <option value="0">❌ ไม่มี</option>
+                                <option value="1">✅ มี</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>สภาพห้อง (1-5)</label>
+                            <select name="room_condition" required>
+                                <option value="5">⭐ 5 — ดีเยี่ยม</option>
+                                <option value="4">⭐ 4 — ดี</option>
+                                <option value="3" selected>⭐ 3 — ปานกลาง</option>
+                                <option value="2">⭐ 2 — ต่ำกว่าเกณฑ์</option>
+                                <option value="1">⭐ 1 — แย่</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>ราคาเช่า/เดือน (บาท)</label>
+                            <input type="number" name="price" step="100" min="0" placeholder="3500" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">➕ เพิ่มข้อมูล</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> รายการข้อมูลหอพัก</div>
+                <div class="data-count"><span id="data-count">กำลังโหลด...</span></div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ชื่อหอพัก</th>
+                                <th>ระยะทาง</th>
+                                <th>ขนาดห้อง</th>
+                                <th>การเดินทาง</th>
+                                <th>ฟิตเนส</th>
+                                <th>สภาพห้อง</th>
+                                <th>ราคา/เดือน</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-tbody">
+                            <tr>
+                                <td colspan="9" style="text-align:center;color:var(--text-muted);padding:30px;">
+                                    กำลังโหลด...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: TRAIN -->
+        <div class="tab-content" id="tab-train">
+            <div class="card">
+                <div class="card-title"><span class="icon">🧠</span> Train Multiple Regression Model</div>
+                <p style="color:var(--text-secondary);margin-bottom:8px;font-size:0.9rem;">
+                    กดปุ่มด้านล่างเพื่อ Train model ด้วย Linear Regression (Multiple Regression)<br />
+                    ใช้ Train/Test Split 80:20 และประเมินผลด้วย R², MAE, MSE, RMSE
+                </p>
+                <div class="train-action">
+                    <button id="train-btn" class="btn btn-train" onclick="trainModel()">🚀 Train Model</button>
+                </div>
+            </div>
+            <div id="model-results">
+                <div class="no-model">
+                    <div class="no-model-icon">🧠</div>
+                    <p>ยังไม่ได้ Train Model — กด Train เพื่อเริ่มต้น</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PREDICT -->
+        <div class="tab-content" id="tab-predict">
+            <div class="card">
+                <div class="card-title"><span class="icon">🔮</span> ทำนายราคาค่าเช่า</div>
+                <p style="color:var(--text-secondary);margin-bottom:18px;font-size:0.9rem;">
+                    กรอกข้อมูลหอพักที่ต้องการทำนาย แล้วกดปุ่มทำนาย
+                </p>
+                <form onsubmit="predict(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ระยะทาง (กม.)</label>
+                            <input type="number" name="pred_distance" step="0.1" min="0" placeholder="0.5" required />
+                        </div>
+                        <div class="form-group">
+                            <label>ขนาดห้อง (ตร.ม.)</label>
+                            <input type="number" name="pred_room_size" step="0.5" min="1" placeholder="24" required />
+                        </div>
+                        <div class="form-group">
+                            <label>การเดินทาง</label>
+                            <select name="pred_convenience" required>
+                                <option value="1">🟢 ง่าย / มีวิน</option>
+                                <option value="0">🔴 ยาก</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>ฟิตเนส</label>
+                            <select name="pred_fitness" required>
+                                <option value="0">❌ ไม่มี</option>
+                                <option value="1">✅ มี</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>สภาพห้อง (1-5)</label>
+                            <select name="pred_room_condition" required>
+                                <option value="5">⭐ 5 — ดีเยี่ยม</option>
+                                <option value="4">⭐ 4 — ดี</option>
+                                <option value="3" selected>⭐ 3 — ปานกลาง</option>
+                                <option value="2">⭐ 2 — ต่ำกว่าเกณฑ์</option>
+                                <option value="1">⭐ 1 — แย่</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="predict-action">
+                        <button type="submit" id="predict-btn" class="btn btn-predict">🔮 ทำนายราคา</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <div id="prediction-result" class="prediction-result">
+                    <div class="prediction-label">ราคาค่าเช่าที่ทำนาย</div>
+                    <div id="predicted-price" class="prediction-price">—</div>
+                    <div class="prediction-unit">บาท / เดือน</div>
+                </div>
+                <div id="prediction-placeholder" class="no-model">
+                    <div class="no-model-icon">🔮</div>
+                    <p>กรอกข้อมูลแล้วกดทำนาย</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+
+</html>
